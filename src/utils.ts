@@ -19,29 +19,117 @@ export async function readFileAsDataURL(file: File): Promise<string> {
   return result_base64;
 }
 
-export async function getImageSrc(files: File[], mode: number = 1) {
-  const file = files[0];
-  const result = await readFileAsDataURL(file);
-  const c: HTMLCanvasElement = document.getElementById('cropcanvas') as any;
-  const ctx = c.getContext('2d');
+async function getImageSrc1(files: File[]) {
+  const img = new Image();
+  img.src = await readFileAsDataURL(files[0]);
+  await img.decode();
+
+  const canvas: HTMLCanvasElement = document.getElementById('cropcanvas') as any;
+  const ctx = canvas.getContext('2d');
   if (!ctx) {
     return;
   }
-  ctx.clearRect(0, 0, c.width, c.height);
-  const img = new Image();
-  img.src = result;
-  await img.decode();
-  const sourceX = mode === 2 ? 128 : 0;
-  const sourceY = mode === 2 ? 60 : 0;
-  const sourceWidth = mode === 2 ? 1664 : 1280;
-  const sourceHeight = mode === 2 ? 926 : 960;
-  const destWidth = sourceWidth / 2;
-  const destHeight = sourceHeight / 2;
-  const destX = 0;
-  const destY = 0;
-  ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
-  return c.toDataURL('image/jpeg', 0.8);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const sourceX = 0;
+  const sourceY = 0;
+  const sourceW = 1280;
+  const sourceH = 960;
+
+  const targetX = 0;
+  const targetY = 0;
+  const targetW = sourceW / 2;
+  const targetH = sourceH / 2;
+  ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, targetX, targetY, targetW, targetH);
+  return canvas.toDataURL();
 }
+
+
+async function getImageSrc2(files: File[]) {
+  const img = new Image();
+  img.src = await readFileAsDataURL(files[0]);
+  await img.decode();
+
+  const canvas: HTMLCanvasElement = document.getElementById('cropcanvas') as any;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return;
+  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const sourceX = 128;
+  const sourceY = 60;
+  const sourceW = 1664;
+  const sourceH = 926;
+
+  const targetX = 0;
+  const targetY = 0;
+  const targetW = sourceW / 2;
+  const targetH = sourceH / 2;
+  ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, targetX, targetY, targetW, targetH);
+  return canvas.toDataURL();
+}
+
+
+export async function getImageSrc(files: File[], mode: number = 1) {
+  switch (mode)
+  {
+    case 1:
+      return getImageSrc1(files);
+    case 2:
+      return getImageSrc2(files);
+  }
+}
+
+
+async function getImageForOcr1(image: HTMLImageElement)
+{
+  const canvas: HTMLCanvasElement = document.getElementById('cropcanvas') as any;
+  const drawContext = canvas.getContext('2d');
+  if (!drawContext) {
+    return;
+  }
+  drawContext.clearRect(0, 0, canvas.width, canvas.height);
+
+  const sourceX = 0;
+  const sourceY = 0;
+  const sourceW = 1280;
+  const sourceH = 960;
+  drawContext.drawImage(image, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW / 2, sourceH / 2);
+  return canvas.toDataURL();
+}
+
+
+async function getImageForOcr2(image: HTMLImageElement) {
+  const canvas: HTMLCanvasElement = document.getElementById('cropcanvas') as any;
+  const drawContext = canvas.getContext('2d');
+  if (!drawContext) {
+    return;
+  }
+  drawContext.clearRect(0, 0, canvas.width, canvas.height);
+
+  const sourceX = 200;
+  const sourceY = 140;
+  const sourceW = 1520;
+  const sourceH = 800;
+  drawContext.drawImage(image, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW / 2, sourceH / 2);
+  return canvas.toDataURL();
+}
+
+export async function getImageForOcr(file: File, mode: number = 1) {
+  const image = new Image();
+  image.src = await readFileAsDataURL(file);
+  await image.decode();
+
+  switch (mode)
+  {
+    case 1:
+      return getImageForOcr1(image);
+    case 2:
+      return getImageForOcr2(image);
+  }
+}
+
 
 export function drawLinks(links: TileLink[]) {
   const c: HTMLCanvasElement = document.getElementById('linecanvas') as any;

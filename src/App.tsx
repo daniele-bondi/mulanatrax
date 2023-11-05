@@ -9,7 +9,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/solid';
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import Fuse from 'fuse.js';
 import produce from 'immer';
 import { debounce, maxBy, uniqWith } from 'lodash';
@@ -22,7 +22,7 @@ import { useRecoilState } from 'recoil';
 import { Button } from './Button';
 import { db, GameMap, MapTile, TilePicture } from './db';
 import { activemapState, mulanamodeState } from './state';
-import { alphabet, drawLinks, fuseOptions, getImageSrc } from './utils';
+import { alphabet, drawLinks, fuseOptions, getImageForOcr, getImageSrc } from './utils';
 
 interface TempLink {
   tile: number;
@@ -256,55 +256,81 @@ const App = () => {
     }
   }
 
+  type OcrSpaceResponse = {
+    ErrorMessage: string;
+    ErrorDetails: string;
+    IsErroredOnProcessing: boolean;
+    OCRExitCode: number;
+    ParsedResults: {
+      ErrorMessage: string;
+      ErrorDetails: string;
+      FileParseExitCode: 0 | 1 | -10 | -20 | -30 | -99;
+      HasOverlay: boolean,
+      Message: string;
+      ParsedText: string;
+      TextOverlay: any;
+    }[];
+    ProcessingTimeInMilliseconds: number
+    SearchablePDFURL: string;
+  };
+
+  async function ocrSpace(base64Image: string, apiKey: string): Promise<OcrSpaceResponse> {
+    const formData = new FormData();
+    formData.append('base64Image',                   base64Image);
+    formData.append('language',                     'eng');
+    formData.append('isOverlayRequired',            'false');
+    formData.append('detectOrientation',            'false');
+    formData.append('isCreateSearchablePdf',        'false');
+    formData.append('isSearchablePdfHideTextLayer', 'false');
+    formData.append('scale',                        'false');
+    formData.append('isTable',                      'false');
+    formData.append('OCREngine',                    '1');
+
+    const requestConfig: AxiosRequestConfig<FormData> = {
+      url: 'https://api.ocr.space/parse/image',
+      method: 'POST',
+      headers: {
+        apikey: apiKey,
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+      },
+      data: formData,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+    };
+    const response = await axios.postForm<OcrSpaceResponse>('https://api.ocr.space/parse/image', formData, requestConfig);
+    return response.data;
+  }
+
   const addTileNote = useCallback(
     async (acceptedFiles: File[]) => {
       const imgSrc = await getImageSrc(acceptedFiles, mulanamode);
       if (!imgSrc) {
         return;
       }
-      if (import.meta.env.VITE_API_KEY) {
-        const onlyBase64 = imgSrc.slice(23);
-        toast.info('Detecting text');
-        const result = await axios.post(
-          'https://vision.googleapis.com/v1/images:annotate',
-          {
-            requests: [
-              {
-                image: {
-                  content: onlyBase64,
-                },
-                features: [
-                  {
-                    type: 'TEXT_DETECTION',
-                  },
-                ],
-                imageContext: {
-                  languageHints: ['en'],
-                },
-              },
-            ],
-          },
-          {
-            params: {
-              key: import.meta.env.VITE_API_KEY,
-            },
-          }
-        );
-        let noteText = '';
-        if (mulanamode === 1) {
-          noteText = `${
-            activeTile?.notes ? activeTile.notes + '\n\n' : ''
-          }${result.data.responses[0].fullTextAnnotation.text
-            .replaceAll(/^[\d]*\s*/gm, '')
-            .replace(/\nOK(.|\s)*$/, '')}`;
-        } else {
-          noteText = `${
-            activeTile?.notes ? activeTile.notes + '\n\n' : ''
-          }${result.data.responses[0].fullTextAnnotation.text
-            .replace('Scan Mode', '')
-            .replaceAll(/^[\d]*\s*/gm, '')
-            .replace(/\nCANCEL(.|\s)*$/, '')}`;
+
+      // if (import.meta.env.OCRSPACE_API_KEY)
+      {
+        let toastId = toast.info('Detecting text', {
+          autoClose: false,
+          hideProgressBar: true,
+        });
+
+        const ocrSourceImage = await getImageForOcr(acceptedFiles[0], mulanamode);
+        const ocrResponse = await ocrSpace(ocrSourceImage!, 'K87181219288957');
+        let noteText = ocrResponse.ParsedResults[0].ParsedText.replaceAll(/^[\d]*\s*/gm, '');
+        if (mulanamode === 1)
+        {
+          noteText = noteText.replace(/\nOK(.|\s)*$/, '');
         }
+        else
+        {
+          noteText = noteText.replace(/.*Scan Mode/, '').replace(/\nCANCEL(.|\s)*$/, '');
+        }
+
+        if (activeTile?.notes)
+          noteText = `${activeTile.notes}\n========================================\n${noteText}`
+
         await db.tiles.update(activeTile!.id!, {
           notes: noteText,
         });
@@ -342,6 +368,8 @@ const App = () => {
             })
           );
         }
+
+        toast.dismiss(toastId);
       }
 
       const result = await db.tilepics.add({
