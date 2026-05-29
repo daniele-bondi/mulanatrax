@@ -57,15 +57,18 @@ async function getImageSrc2(files: File[]) {
   }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const sourceX = 128;
-  const sourceY = 60;
-  const sourceW = 1664;
-  const sourceH = 926;
+  img.width
+
+  // Remove decorative borders from the screenshot.
+  const sourceX = img.width  * 0.066;
+  const sourceY = img.height * 0.085;
+  const sourceW = img.width  - (sourceX * 2);
+  const sourceH = img.height - (sourceY * 2);
 
   const targetX = 0;
   const targetY = 0;
-  const targetW = sourceW / 2;
-  const targetH = sourceH / 2;
+  const targetW = canvas.width;
+  const targetH = canvas.height;
   ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, targetX, targetY, targetW, targetH);
   return canvas.toDataURL();
 }
