@@ -111,11 +111,12 @@ async function getImageForOcr2(image: HTMLImageElement) {
   }
   drawContext.clearRect(0, 0, canvas.width, canvas.height);
 
-  const sourceX = 200;
-  const sourceY = 140;
-  const sourceW = 1520;
-  const sourceH = 800;
-  drawContext.drawImage(image, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW / 2, sourceH / 2);
+  // Remove decorative borders from the screenshot.
+  const sourceX = image.width  * 0.104;
+  const sourceY = image.height * 0.129;
+  const sourceW = image.width  - (sourceX * 2);
+  const sourceH = image.height - (sourceY * 2);
+  drawContext.drawImage(image, sourceX, sourceY, sourceW, sourceH, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL();
 }
 
