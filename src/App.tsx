@@ -828,6 +828,7 @@ const App = () => {
                                 x: xidx,
                                 y: yidx + 1,
                                 img: imgSrc,
+                                unsolved: 1,
                               };
                               draft.push(newRow);
                             })
