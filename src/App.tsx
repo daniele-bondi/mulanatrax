@@ -201,6 +201,7 @@ const App = () => {
         map: newMapId,
         x: 0,
         y: 0,
+        unsolved: 1,
       });
       refreshMap(newMapId);
       setactivemap(newMapId);
@@ -708,6 +709,7 @@ const App = () => {
                               x: xidx,
                               y: yidx,
                               img: imgSrc,
+                              unsolved: 1,
                             });
                             setmap(
                               produce(map, (draft) => {
@@ -717,6 +719,7 @@ const App = () => {
                                   x: xidx,
                                   y: yidx,
                                   img: imgSrc,
+                                  unsolved: 1,
                                 };
                               })
                             );
@@ -760,6 +763,7 @@ const App = () => {
                             x: xidx,
                             y: 0,
                             img: imgSrc,
+                            unsolved: 1,
                           });
                           setmap(
                             produce(map, (draft) => {
@@ -779,6 +783,7 @@ const App = () => {
                                 x: xidx,
                                 y: 0,
                                 img: imgSrc,
+                                unsolved: 1,
                               };
                             })
                           );
@@ -809,6 +814,7 @@ const App = () => {
                             x: xidx,
                             y: yidx + 1,
                             img: imgSrc,
+                            unsolved: 1,
                           });
 
                           setmap(
@@ -854,6 +860,7 @@ const App = () => {
                             x: 0,
                             y: yidx,
                             img: imgSrc,
+                            unsolved: 1,
                           });
 
                           setmap(
@@ -872,6 +879,7 @@ const App = () => {
                                 x: 0,
                                 y: yidx,
                                 img: imgSrc,
+                                unsolved: 1,
                               };
                             })
                           );
@@ -902,6 +910,7 @@ const App = () => {
                             x: xidx + 1,
                             y: yidx,
                             img: imgSrc,
+                            unsolved: 1,
                           });
 
                           setmap(
@@ -913,6 +922,7 @@ const App = () => {
                                 x: xidx + 1,
                                 y: yidx,
                                 img: imgSrc,
+                                unsolved: 1,
                               };
                             })
                           );
