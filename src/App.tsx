@@ -330,7 +330,7 @@ const App = () => {
         }
 
         if (activeTile?.notes)
-          noteText = `${activeTile.notes}\n========================================\n${noteText}`
+          noteText = `${activeTile.notes}\n\n==========================================\n\n${noteText}`
 
         await db.tiles.update(activeTile!.id!, {
           notes: noteText,
