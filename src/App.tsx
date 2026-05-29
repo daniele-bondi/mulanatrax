@@ -404,9 +404,10 @@ const App = () => {
   }
 
   async function renameMap() {
-    const newname = prompt('Insert new name for this map');
-    if (newname) {
-      await db.maps.update(activemap, { name: newname });
+    const oldName: string = (await db.maps.get(activemap))?.name ?? '';
+    const newName = prompt('Insert new name for this map', oldName);
+    if (newName) {
+      await db.maps.update(activemap, { name: newName });
       const maps = await db.maps.toArray();
       setmaps(maps);
       toast.info('Map name updated');
