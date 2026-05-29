@@ -516,7 +516,7 @@ const App = () => {
           {maps.length > 0 && (
             <select value={activemap} className="mr-2" onChange={(x) => onMapChange(x)}>
               {maps &&
-                maps.map((x) => {
+                maps.toSorted((a, b) => a.name.localeCompare(b.name)).map((x) => {
                   return (
                     <option key={`map_${x.id}`} value={x.id}>
                       {x.name}
