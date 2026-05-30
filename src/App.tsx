@@ -747,7 +747,7 @@ const App = () => {
                           }
                           openTile(tile);
                         }}
-                        title={`${tile.name ? tile.name + ' ' : ''}${alphabet[tile.x]}-${tile.y}`}
+                        title={`${tile.name ? tile.name + ' ' : ''}${alphabet[tile.x]}-${tile.y+1}`}
                         className="w-full h-full z-40 !pointer-events-auto"
                         src={tile.img}
                       />
@@ -987,7 +987,7 @@ const App = () => {
                 <Dialog.Panel className="w-full max-w-screen transform overflow-hidden rounded-sm bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <div className="grid grid-cols-6 lg:grid-cols-12 mt-2 gap-4 max-h-[800px]">
                     <span className="absolute bottom-6 right-6 text-slate-800">{`${alphabet[activeTile?.x ?? 0]}-${
-                      activeTile?.y
+                      activeTile ? activeTile.y+1 : undefined
                     }`}</span>
 
                     <form
